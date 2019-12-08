@@ -1,1 +1,2 @@
-# Codingame Client
+# codingame-lient
+Client for Codingame

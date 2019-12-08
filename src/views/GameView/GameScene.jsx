@@ -1,0 +1,331 @@
+import React, { useRef, useEffect } from 'react'
+import { shuffle, random } from 'lodash'
+import { Engine, Render, Runner, World, Bodies, Body, Events } from 'matter-js'
+
+const GameScene = ({ questions, cellsHorizontal, cellsVertical, isWin, setIsWin }) => {
+  const sceneRef = useRef()
+
+  const width = window.innerWidth
+  const height = window.innerHeight
+
+  const unitLengthX = width / cellsHorizontal
+  const unitLengthY = height / cellsVertical
+
+  const engine = Engine.create()
+  const { world } = engine
+
+  const renderWalls = () => {
+    // Walls
+    const walls = [
+      Bodies.rectangle(width / 2, 0, width, 2, { isStatic: true }),
+      Bodies.rectangle(width / 2, height, width, 2, { isStatic: true }),
+      Bodies.rectangle(0, height / 2, 2, height, { isStatic: true }),
+      Bodies.rectangle(width, height / 2, 2, height, { isStatic: true }),
+    ]
+    World.add(world, walls)
+  }
+
+  const renderGoal = () => {
+    const goal = Bodies.rectangle(
+      width - unitLengthX / 2,
+      height - unitLengthY / 2,
+      unitLengthX * 0.7,
+      unitLengthY * 0.7,
+      {
+        label: 'goal',
+        isStatic: true,
+        render: {
+          fillStyle: 'green',
+        },
+      },
+    )
+    World.add(world, goal)
+  }
+
+  const renderBallAndSetupEvent = () => {
+    const ballRadius = Math.min(unitLengthX, unitLengthY) / 4
+    const ball = Bodies.circle(unitLengthX / 2, unitLengthY / 2, ballRadius, {
+      label: 'ball',
+      render: {
+        sprite: {
+          texture:
+            'https://opengameart.org/sites/default/files/styles/medium/public/SoccerBall_0.png',
+          xScale: ballRadius / 55,
+          yScale: ballRadius / 55,
+        },
+      },
+    })
+    World.add(world, ball)
+
+    document.addEventListener('keydown', event => {
+      const { x, y } = ball.velocity
+
+      if (event.keyCode === 87) {
+        Body.setVelocity(ball, { x, y: y - 10 })
+      }
+
+      if (event.keyCode === 68) {
+        Body.setVelocity(ball, { x: x + 4, y })
+      }
+      if (event.keyCode === 83) {
+        Body.setVelocity(ball, { x, y: y + 10 })
+      }
+      if (event.keyCode === 65) {
+        Body.setVelocity(ball, { x: x - 4, y })
+      }
+    })
+  }
+
+  const renderLine = () => {
+    const grid = Array(cellsVertical)
+      .fill(null)
+      .map(() => Array(cellsHorizontal).fill(false))
+
+    const verticals = Array(cellsVertical)
+      .fill(null)
+      .map(() => Array(cellsHorizontal - 1).fill(false))
+
+    const horizontals = Array(cellsVertical - 1)
+      .fill(null)
+      .map(() => Array(cellsHorizontal).fill(false))
+
+    const startRow = random(0, cellsVertical - 1)
+    const startColumn = random(0, cellsHorizontal - 1)
+
+    const stepThroughCell = (row, column) => {
+      // If I have visited the cell at [row, column], then return
+      if (grid[row][column] == true) return
+
+      // Mark this cell as being visited
+      grid[row][column] = true
+
+      // Assemble randomly-ordered list of neighbors
+      const neighbors = shuffle([
+        [row - 1, column, 'up'],
+        [row, column + 1, 'right'],
+        [row + 1, column, 'down'],
+        [row, column - 1, 'left'],
+      ])
+
+      // For each neighbors ...
+      for (let neighbor of neighbors) {
+        const [nextRow, nextColumn, direction] = neighbor
+
+        // See if neighbors is out of bound
+        if (
+          nextRow < 0 ||
+          nextRow >= cellsVertical ||
+          nextColumn < 0 ||
+          nextColumn >= cellsHorizontal
+        ) {
+          continue
+        }
+
+        // If we have visited that neighbor, continue to next neighbor
+        if (grid[nextRow][nextColumn]) {
+          continue
+        }
+
+        // Remove a wall from either horizontals or verticals
+        if (direction === 'left') {
+          verticals[row][column - 1] = true
+        } else if (direction === 'right') {
+          verticals[row][column] = true
+        } else if (direction === 'up') {
+          horizontals[row - 1][column] = true
+        } else if (direction === 'down') {
+          horizontals[row][column] = true
+        }
+
+        // Visit that next cell
+        stepThroughCell(nextRow, nextColumn)
+      }
+    }
+
+    stepThroughCell(startRow, startColumn)
+
+    horizontals.forEach((row, rowIndex) => {
+      row.forEach((open, columnIndex) => {
+        if (open === true) {
+          return
+        }
+
+        const wall = Bodies.rectangle(
+          columnIndex * unitLengthX + unitLengthX / 2,
+          rowIndex * unitLengthY + unitLengthY,
+          unitLengthX,
+          5,
+          {
+            label: 'wall',
+            isStatic: true,
+            render: {
+              fillStyle: 'red',
+            },
+          },
+        )
+
+        World.add(world, wall)
+      })
+    })
+
+    verticals.forEach((row, rowIndex) => {
+      row.forEach((open, columnIndex) => {
+        if (open) {
+          return
+        }
+
+        const wall = Bodies.rectangle(
+          columnIndex * unitLengthX + unitLengthX,
+          rowIndex * unitLengthY + unitLengthY / 2,
+          5,
+          unitLengthY,
+          {
+            label: 'wall',
+            isStatic: true,
+            render: {
+              fillStyle: 'red',
+            },
+          },
+        )
+
+        World.add(world, wall)
+      })
+    })
+  }
+
+  const renderCheckpoint = () => {
+    const ballRadius = Math.min(unitLengthX, unitLengthY) / 3
+
+    questions.forEach(question => {
+      let x = random(1, cellsHorizontal - 1)
+      let y = random(1, cellsVertical - 1)
+      const colorArr = {
+        easy: 'green',
+        medium: 'yellow',
+        hard: 'red',
+      }
+
+      while (x === 0 || (y === cellsVertical - 1 && x === cellsHorizontal - 1)) {
+        x = random(1, cellsHorizontal - 1)
+        y = random(1, cellsVertical - 1)
+      }
+
+      const checkpoint = Bodies.circle(
+        x * unitLengthX + unitLengthX / 2,
+        y * unitLengthY + unitLengthY / 2,
+        ballRadius,
+        {
+          id: question.id,
+          label: 'checkpoint',
+          render: {
+            isStatic: true,
+            fillStyle: colorArr[question.difficult],
+          },
+        },
+      )
+
+      Events.on(engine, 'beforeUpdate', function() {
+        var gravity = engine.world.gravity
+
+        if (true) {
+          Body.applyForce(checkpoint, checkpoint.position, {
+            x: -gravity.x * gravity.scale * checkpoint.mass,
+            y: -gravity.y * gravity.scale * checkpoint.mass,
+          })
+        }
+      })
+
+      World.add(world, checkpoint)
+    })
+  }
+
+  const checkDoExercise = collision => {
+    const labels = ['ball', 'checkpoint']
+
+    if (
+      labels.includes(collision.bodyA.label) &&
+      labels.includes(collision.bodyB.label) &&
+      collision.bodyA.label !== collision.bodyB.label
+    ) {
+      const questionId = collision.bodyB.id
+
+      alert(questionId)
+
+      World.remove(world, collision.bodyB)
+    }
+  }
+
+  const checkWin = collision => {
+    if (isWin) return
+
+    const labels = ['ball', 'goal']
+
+    if (labels.includes(collision.bodyA.label) && labels.includes(collision.bodyB.label)) {
+      // Remove all question
+      const deletedObj = []
+
+      world.bodies.forEach(body => {
+        if (body.label === 'checkpoint') {
+          deletedObj.push(body)
+        }
+      })
+
+      deletedObj.forEach(obj => World.remove(world, obj))
+
+      // Show Winner
+      // document.querySelector('.winner').classList.remove('hidden')
+      setIsWin(true)
+
+      world.bodies.forEach(body => {
+        if (body.label === 'wall') {
+          Body.setStatic(body, false)
+        }
+      })
+    }
+  }
+
+  const checkCodition = () => {
+    // Win condition
+    Events.on(engine, 'collisionStart', event => {
+      event.pairs.forEach(collision => {
+        checkWin(collision)
+        checkDoExercise(collision)
+      })
+    })
+  }
+
+  useEffect(() => {
+    if (sceneRef === null) return
+
+    const render = Render.create({
+      element: sceneRef.current,
+      engine,
+      options: {
+        wireframes: false,
+        width,
+        height,
+      },
+    })
+    Render.run(render)
+    Runner.run(Runner.create(), engine)
+
+    renderWalls()
+
+    renderLine()
+
+    renderGoal()
+
+    renderCheckpoint()
+
+    renderBallAndSetupEvent()
+
+    checkCodition()
+  }, [sceneRef])
+
+  return (
+    <div id="game-view" ref={sceneRef}>
+    </div>
+  )
+}
+
+export default GameScene

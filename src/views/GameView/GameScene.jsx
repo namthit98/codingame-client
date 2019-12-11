@@ -1,6 +1,18 @@
 import React, { useRef, useEffect } from 'react'
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  Button,
+} from '@material-ui/core'
 import { shuffle, random } from 'lodash'
 import { Engine, Render, Runner, World, Bodies, Body, Events } from 'matter-js'
+
+let engine
+let world
+let render
 
 const GameScene = ({ questions, cellsHorizontal, cellsVertical, isWin, setIsWin }) => {
   const sceneRef = useRef()
@@ -10,9 +22,6 @@ const GameScene = ({ questions, cellsHorizontal, cellsVertical, isWin, setIsWin 
 
   const unitLengthX = width / cellsHorizontal
   const unitLengthY = height / cellsVertical
-
-  const engine = Engine.create()
-  const { world } = engine
 
   const renderWalls = () => {
     // Walls
@@ -256,8 +265,6 @@ const GameScene = ({ questions, cellsHorizontal, cellsVertical, isWin, setIsWin 
   }
 
   const checkWin = collision => {
-    if (isWin) return
-
     const labels = ['ball', 'goal']
 
     if (labels.includes(collision.bodyA.label) && labels.includes(collision.bodyB.label)) {
@@ -272,21 +279,21 @@ const GameScene = ({ questions, cellsHorizontal, cellsVertical, isWin, setIsWin 
 
       deletedObj.forEach(obj => World.remove(world, obj))
 
-      // Show Winner
-      // document.querySelector('.winner').classList.remove('hidden')
-      setIsWin(true)
-
       world.bodies.forEach(body => {
         if (body.label === 'wall') {
           Body.setStatic(body, false)
         }
       })
+
+      Events.off(engine, 'collisionStart')
+      setIsWin(true)
     }
   }
 
   const checkCodition = () => {
     // Win condition
     Events.on(engine, 'collisionStart', event => {
+      console.log('okiiii');
       event.pairs.forEach(collision => {
         checkWin(collision)
         checkDoExercise(collision)
@@ -294,10 +301,11 @@ const GameScene = ({ questions, cellsHorizontal, cellsVertical, isWin, setIsWin 
     })
   }
 
-  useEffect(() => {
-    if (sceneRef === null) return
+  const startGame = () => {
+    engine = Engine.create()
+    world = engine.world
 
-    const render = Render.create({
+    render = Render.create({
       element: sceneRef.current,
       engine,
       options: {
@@ -320,11 +328,53 @@ const GameScene = ({ questions, cellsHorizontal, cellsVertical, isWin, setIsWin 
     renderBallAndSetupEvent()
 
     checkCodition()
-  }, [sceneRef])
+  }
+
+  const resetGame = () => {
+    World.clear(engine.world)
+    Engine.clear(engine)
+    Runner.stop(render)
+    render.canvas.remove()
+  }
+
+  useEffect(() => {
+    if (sceneRef === null) return
+
+    startGame()
+  }, [])
+
+  const hanleClose = () => {
+    setIsWin(false)
+    resetGame()
+    startGame()
+  }
 
   return (
-    <div id="game-view" ref={sceneRef}>
-    </div>
+    <>
+      {/* <Dialog
+        open={isWin}
+        onClose={hanleClose}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">{"Use Google's location service?"}</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            Let Google help apps determine location. This means sending anonymous location data to
+            Google, even when no apps are running.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={hanleClose} color="primary">
+            Disagree
+          </Button>
+          <Button onClick={hanleClose} color="primary">
+            Agree
+          </Button>
+        </DialogActions>
+      </Dialog> */}
+      <div id="game-view" ref={sceneRef}></div>
+    </>
   )
 }
 

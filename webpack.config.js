@@ -117,7 +117,7 @@ module.exports = function(_env, argv) {
           use: ['@svgr/webpack'],
         },
         {
-          test: /\.(eot|otf|ttf|woff|woff2)$/,
+          test: /\.(eot|otf|ttf|woff|woff2|mp3)$/,
           loader: require.resolve('file-loader'),
           options: {
             name: 'static/media/[name].[hash:8].[ext]',

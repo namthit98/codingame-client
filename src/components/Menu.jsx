@@ -86,10 +86,10 @@ const StyledMenu = styled.div`
   }
 `
 
-const Menu = ({ id, animate }) => {
+const Menu = ({ id, animate, startGame }) => {
   return (
     <StyledMenu id={id || 'menu'} animate={animate}>
-      <button>
+      <button onClick={() => startGame()}>
         <span>Start Game </span>
       </button>
       <button>

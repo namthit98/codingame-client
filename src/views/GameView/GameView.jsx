@@ -16,6 +16,7 @@ const GameView = () => {
     { id: Math.random() * 1000, title: 'Test 2', difficult: 'medium' },
     { id: Math.random() * 1000, title: 'Test 3', difficult: 'hard' },
   ])
+  const [gameView, setGameView] = useState('menu')
   const [cellsHorizontal, setCellsHorizontal] = useState(6)
   const [cellsVertical, setCellsVertical] = useState(4)
   const [isWin, setIsWin] = useState(false)
@@ -30,23 +31,36 @@ const GameView = () => {
   //   setIsWin(false)
   // }
 
+  const startGameHandler = () => {
+    setGameView('game')
+  }
+
+  const goToMenuHandler = () => {
+    setGameView('menu')
+  }
+
   return (
     <>
-      <MenuScene animate={true} />
+      {gameView === 'menu' && <MenuScene animate={true} startGame={startGameHandler} />}
+
+      {gameView === 'game' && (
+        <GameScene
+          questions={questions}
+          cellsHorizontal={cellsHorizontal}
+          cellsVertical={cellsVertical}
+          goToMenu={goToMenuHandler}
+          isWin={isWin}
+          setIsWin={setIsWin}
+          // handleClickOpen={handleClickOpen}
+          // isPause={isPause}
+        />
+      )}
+
       {/* {isWin && (
         <div className="winner">
           <h1>You Win!</h1>
         </div>
-      )}
-      <GameScene
-        questions={questions}
-        cellsHorizontal={cellsHorizontal}
-        cellsVertical={cellsVertical}
-        isWin={isWin}
-        setIsWin={setIsWin}
-        // handleClickOpen={handleClickOpen}
-        // isPause={isPause}
-      /> */}
+      )} */}
     </>
   )
 }

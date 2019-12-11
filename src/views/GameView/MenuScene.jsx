@@ -3,6 +3,8 @@ import anime from 'animejs/lib/anime.es.js'
 import Logo from '../../components/Logo'
 import styled from 'styled-components'
 import Menu from '../../components/Menu'
+import menuBackgroundMp3 from './../../assets/mp3/ChocoboRacingCidsTestCourse-HoaTau-3316605.mp3'
+import Audio from '../../components/Audio'
 
 const StyledMenuScene = styled.div`
   width: 100vw;
@@ -14,12 +16,12 @@ const StyledMenuScene = styled.div`
   padding-top: 5rem;
 `
 
-const MenuScene = ({ animate }) => {
+const MenuScene = ({ animate, startGame }) => {
   useEffect(() => {
     if (!animate) {
-
       return
     }
+
     const timeline = anime.timeline()
 
     timeline.add({
@@ -49,10 +51,12 @@ const MenuScene = ({ animate }) => {
       },
     })
   }, [])
+
   return (
     <StyledMenuScene>
+      <Audio src={menuBackgroundMp3} />
       <Logo id="logo" />
-      <Menu id="menu" animate={animate} />
+      <Menu id="menu" animate={animate} startGame={startGame} />
     </StyledMenuScene>
   )
 }

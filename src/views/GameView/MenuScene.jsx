@@ -31,6 +31,12 @@ const MenuScene = ({ animate, startGame }) => {
       delay: function(el, i) {
         return i * 50
       },
+      complete: function(anim) {
+        document.querySelectorAll('#logo path').forEach(el => {
+          el.style['stroke-dasharray'] = 'none';
+          el.style['stroke-dashoffset'] = 'none';
+        })
+      },
       direction: 'normal',
     })
 

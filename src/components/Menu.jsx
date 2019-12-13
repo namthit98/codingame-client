@@ -96,7 +96,7 @@ const Menu = ({ id, animate, startGame }) => {
         <span>Ranking</span>
       </button>
       <button>
-        <span>Score</span>
+        <span>Setting</span>
       </button>
     </StyledMenu>
   )

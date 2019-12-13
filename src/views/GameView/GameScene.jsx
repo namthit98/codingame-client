@@ -1,14 +1,8 @@
 import React, { useRef, useEffect } from 'react'
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogContentText,
-  DialogActions,
-  Button,
-} from '@material-ui/core'
 import { shuffle, random } from 'lodash'
 import { Engine, Render, Runner, World, Bodies, Body, Events } from 'matter-js'
+
+import soccerBall from './../../assets/SoccerBall.png'
 
 let engine
 let world
@@ -57,8 +51,7 @@ const GameScene = ({ questions, cellsHorizontal, cellsVertical, isWin, setIsWin 
       label: 'ball',
       render: {
         sprite: {
-          texture:
-            'https://opengameart.org/sites/default/files/styles/medium/public/SoccerBall_0.png',
+          texture: soccerBall,
           xScale: ballRadius / 55,
           yScale: ballRadius / 55,
         },
@@ -67,20 +60,26 @@ const GameScene = ({ questions, cellsHorizontal, cellsVertical, isWin, setIsWin 
     World.add(world, ball)
 
     document.addEventListener('keydown', event => {
-      const { x, y } = ball.velocity
+      const { x, y } = ball.position
 
       if (event.keyCode === 87) {
+        // Body.applyForce( ball, {x, y}, {x: 0, y: -.07});
         Body.setVelocity(ball, { x, y: y - 10 })
       }
 
       if (event.keyCode === 68) {
-        Body.setVelocity(ball, { x: x + 4, y })
+        Body.setVelocity(ball, { x: x + 5, y })
+        // Body.applyForce( ball, {x, y}, {x: .07, y: 0});
       }
+
       if (event.keyCode === 83) {
+        // Body.applyForce( ball, {x, y}, {x: 0, y: .07});
         Body.setVelocity(ball, { x, y: y + 10 })
       }
+
       if (event.keyCode === 65) {
-        Body.setVelocity(ball, { x: x - 4, y })
+        Body.setVelocity(ball, { x: x - 5, y })
+        // Body.applyForce( ball, {x: ball.position.x, y: ball.position.y}, {x: -.07, y: 0});
       }
     })
   }
@@ -343,36 +342,8 @@ const GameScene = ({ questions, cellsHorizontal, cellsVertical, isWin, setIsWin 
     startGame()
   }, [])
 
-  const hanleClose = () => {
-    setIsWin(false)
-    resetGame()
-    startGame()
-  }
-
   return (
     <>
-      {/* <Dialog
-        open={isWin}
-        onClose={hanleClose}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
-      >
-        <DialogTitle id="alert-dialog-title">{"Use Google's location service?"}</DialogTitle>
-        <DialogContent>
-          <DialogContentText id="alert-dialog-description">
-            Let Google help apps determine location. This means sending anonymous location data to
-            Google, even when no apps are running.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={hanleClose} color="primary">
-            Disagree
-          </Button>
-          <Button onClick={hanleClose} color="primary">
-            Agree
-          </Button>
-        </DialogActions>
-      </Dialog> */}
       <div id="game-view" ref={sceneRef}></div>
     </>
   )

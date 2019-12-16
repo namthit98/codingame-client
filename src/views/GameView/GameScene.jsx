@@ -1,14 +1,20 @@
-import React, { useRef, useEffect } from 'react'
+import React, { useRef, useEffect, useCallback } from 'react'
 import { shuffle, random } from 'lodash'
 import { Engine, Render, Runner, World, Bodies, Body, Events } from 'matter-js'
-
+import styled from 'styled-components'
 import soccerBall from './../../assets/SoccerBall.png'
+
+const StyledGameScene = styled.div`
+  height: 100vh;
+  width: 100vw;
+`
 
 let engine
 let world
 let render
+let isControl
 
-const GameScene = ({ questions, cellsHorizontal, cellsVertical, isWin, setIsWin }) => {
+const GameScene = ({ questions, cellsHorizontal, cellsVertical, isWin, setIsWin, open }) => {
   const sceneRef = useRef()
 
   const width = window.innerWidth
@@ -16,6 +22,8 @@ const GameScene = ({ questions, cellsHorizontal, cellsVertical, isWin, setIsWin 
 
   const unitLengthX = width / cellsHorizontal
   const unitLengthY = height / cellsVertical
+
+  isControl = !open
 
   const renderWalls = () => {
     // Walls
@@ -45,7 +53,7 @@ const GameScene = ({ questions, cellsHorizontal, cellsVertical, isWin, setIsWin 
     World.add(world, goal)
   }
 
-  const renderBallAndSetupEvent = () => {
+  const renderBallAndSetupEvent = useCallback(() => {
     const ballRadius = Math.min(unitLengthX, unitLengthY) / 4
     const ball = Bodies.circle(unitLengthX / 2, unitLengthY / 2, ballRadius, {
       label: 'ball',
@@ -60,7 +68,9 @@ const GameScene = ({ questions, cellsHorizontal, cellsVertical, isWin, setIsWin 
     World.add(world, ball)
 
     document.addEventListener('keydown', event => {
-      const { x, y } = ball.position
+      if(!isControl) return
+
+      const { x, y } = ball.velocity
 
       if (event.keyCode === 87) {
         // Body.applyForce( ball, {x, y}, {x: 0, y: -.07});
@@ -82,7 +92,7 @@ const GameScene = ({ questions, cellsHorizontal, cellsVertical, isWin, setIsWin 
         // Body.applyForce( ball, {x: ball.position.x, y: ball.position.y}, {x: -.07, y: 0});
       }
     })
-  }
+  }, [open])
 
   const renderLine = () => {
     const grid = Array(cellsVertical)
@@ -292,7 +302,7 @@ const GameScene = ({ questions, cellsHorizontal, cellsVertical, isWin, setIsWin 
   const checkCodition = () => {
     // Win condition
     Events.on(engine, 'collisionStart', event => {
-      console.log('okiiii');
+      console.log('okiiii')
       event.pairs.forEach(collision => {
         checkWin(collision)
         checkDoExercise(collision)
@@ -344,7 +354,7 @@ const GameScene = ({ questions, cellsHorizontal, cellsVertical, isWin, setIsWin 
 
   return (
     <>
-      <div id="game-view" ref={sceneRef}></div>
+      <StyledGameScene id="game-view" ref={sceneRef}></StyledGameScene>
     </>
   )
 }

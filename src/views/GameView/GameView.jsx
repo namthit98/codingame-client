@@ -12,7 +12,7 @@ const GameView = () => {
   const [gameView, setGameView] = useState('menu')
   const [isLoading, setIsLoading] = useState(true)
   const [cellsHorizontal, setCellsHorizontal] = useState(8)
-  const [cellsVertical, setCellsVertical] = useState(5)
+  const [cellsVertical, setCellsVertical] = useState(6)
   const [isWin, setIsWin] = useState(false)
   const [open, setOpen] = useState(false)
   const [isPause, setIsPause] = useState(false)
@@ -36,7 +36,7 @@ const GameView = () => {
 
       {gameView === 'game' && (
         <>
-          {open && <EditorModal toggleEditorModalHandler={toggleEditorModalHandler} open={open} />}
+          {open && <EditorModal toggleEditorModalHandler={toggleEditorModalHandler} />}
           <GameScene
             questions={questions}
             cellsHorizontal={cellsHorizontal}
@@ -44,6 +44,7 @@ const GameView = () => {
             goToMenu={goToMenuHandler}
             isWin={isWin}
             setIsWin={setIsWin}
+            open={open}
           />
         </>
       )}

@@ -18,7 +18,7 @@ const GameView = () => {
   const [isPause, setIsPause] = useState(false)
 
   const startGameHandler = useCallback(() => {
-    toggleEditorModalHandler(true)
+    //TODO // toggleEditorModalHandler(true)
     setGameView('game')
   }, [])
 
@@ -32,7 +32,7 @@ const GameView = () => {
 
   return (
     <>
-      {gameView === 'menu' && <MenuScene animate={false} startGame={startGameHandler} />}
+      {gameView === 'menu' && <MenuScene animate={true} startGame={startGameHandler} />}
 
       {gameView === 'game' && (
         <>
@@ -45,6 +45,7 @@ const GameView = () => {
             isWin={isWin}
             setIsWin={setIsWin}
             open={open}
+            toggleEditorModalHandler={toggleEditorModalHandler}
           />
         </>
       )}

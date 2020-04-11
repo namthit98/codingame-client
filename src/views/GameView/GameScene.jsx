@@ -14,7 +14,7 @@ let world
 let render
 let isControl
 
-const GameScene = ({ questions, cellsHorizontal, cellsVertical, isWin, setIsWin, open }) => {
+const GameScene = ({ questions, cellsHorizontal, cellsVertical, isWin, setIsWin, open, toggleEditorModalHandler }) => {
   const sceneRef = useRef()
 
   const width = window.innerWidth
@@ -266,7 +266,7 @@ const GameScene = ({ questions, cellsHorizontal, cellsVertical, isWin, setIsWin,
       collision.bodyA.label !== collision.bodyB.label
     ) {
       const questionId = collision.bodyB.id
-
+      toggleEditorModalHandler(true)
       alert(questionId)
 
       World.remove(world, collision.bodyB)

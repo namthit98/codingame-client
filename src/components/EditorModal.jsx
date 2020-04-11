@@ -1,9 +1,13 @@
-import React, { useEffect, useCallback } from 'react'
+import React, { useEffect, useCallback, useState, useMemo } from 'react'
 import styled from 'styled-components'
 import anime from 'animejs/lib/anime.es.js'
 import Editor from './Editor'
 import Button from './Button'
 import Label from './Label'
+import request from '../lib/request'
+import Tab from './Tab'
+import { get } from 'lodash'
+import AceEditor from 'react-ace'
 
 const StyledWrapper = styled.div`
   position: fixed;
@@ -47,7 +51,6 @@ const StyledHeader = styled.div`
 
 const StyledTitle = styled.h2`
   color: #00D4FF;
-  // color: #FF5B31;
   font-size: 2.5rem;
 `
 
@@ -74,15 +77,75 @@ const StyledBodyRight = styled.div`
 `
 
 const EditorModal = ({toggleEditorModalHandler}) => {
+  const [code, setCode] = useState(`function sum(a, b) {
+    return a + b
+}`)
+  const [results, setResults] = useState('')
+
+  const panels = useMemo(() => {
+    console.log(results);
+    return [
+      {
+        menuItem: 'Instructions',
+        render: () => <div>Tab 1 Content</div>,
+      },
+      {
+        menuItem: 'Output',
+        render: () => <div>
+          <span>Time: {get(results, 'stats.duration', 0)} ms</span> &nbsp;
+          <span>Passed: {get(results, 'stats.passes', 0)}</span> &nbsp;
+          <span>Failed: {get(results, 'stats.failures', 0)}</span>
+          <div>
+          {get(results, 'stats.passPercent', 0) === 100 ? (
+                <p>Congratulations! All tests passed!</p>
+              ) : (
+                <div className="output-editor">
+                  {get(results, 'results.0.suites.0.tests', []).map(test => {
+                      if(test.fail) {
+                          return test.err.message
+                      }
+                      return null
+                    }).filter(test => test).join('\n')}
+                  <AceEditor
+                    value={get(results, 'results.0.suites.0.tests', []).map(test => {
+                      if(test.fail) {
+                          return test.err.message
+                      }
+                      return null
+                    }).filter(test => test).join('\n')}
+                    showGutter={false}
+                    readOnly={true}
+                    maxLines={10}
+                    showLineNumbers={false}
+                  />
+                </div>
+              )}
+          </div>
+        </div>,
+      },
+    ]
+  }, [results])
+
   const closeModalHandler = useCallback(() => {
     openAnimationHandler('reverse', () => {
       toggleEditorModalHandler(false)
     })
   }, [])
 
-  const runCodeHandler = useCallback(() => {
-    console.log('hello');
+  const changeCodeHandler = useCallback((newValue) => {
+    setCode(newValue)
   }, [])
+
+  const runCodeHandler = useCallback(async () => {
+    const { results } = await request("http://localhost:7000/code/excute", {
+      method: "POST",
+      payload: {
+        code
+      }
+    })
+
+    setResults(results.data)
+  }, [code])
 
   const openAnimationHandler = useCallback((direction, callback) => {
     const timeline = anime.timeline({
@@ -116,6 +179,7 @@ const EditorModal = ({toggleEditorModalHandler}) => {
   }, [])
 
   useEffect(() => {
+    // return
     openAnimationHandler('normal')
   }, [])
 
@@ -129,12 +193,12 @@ const EditorModal = ({toggleEditorModalHandler}) => {
           <Button bgColor={'#FF5B31'} style={{ marginLeft: 'auto' }} onClick={closeModalHandler}>Skip</Button>
         </StyledHeader>
         <StyledBody>
-          <StyledBodyLeft>
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Inventore doloremque velit laboriosam incidunt tenetur soluta magnam mollitia rerum. Ducimus veniam minus asperiores voluptatibus voluptatem tempore perferendis modi fugit reprehenderit earum.
+          <StyledBodyLeft style={{overflowY: 'auto'}}>
+            <Tab panels={panels} />
           </StyledBodyLeft>
 
           <StyledBodyRight>
-            <Editor />
+            <Editor onChange={changeCodeHandler} value={code} />
           </StyledBodyRight>
         </StyledBody>
         <StyledFooter>

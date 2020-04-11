@@ -20,11 +20,18 @@ const StyledAceEditor = styled(AceEditor)`
   height: 100% !important;
 `
 
-const Editor = ({ saveFile }) => {
-  const saveFileHandler = useCallback(debounce(() => {
-    if (saveFile) saveFile()
-    console.log('saved !')
-  }, 500), [])
+const Editor = ({ saveFile, onChange, value }) => {
+  const saveFileHandler = useCallback(
+    debounce(() => {
+      if (saveFile) saveFile()
+      console.log('saved !')
+    }, 500),
+    [],
+  )
+
+  const onChangeHandler = useCallback((newValue) => {
+    if(onChange) onChange(newValue)
+  }, [])
 
   return (
     <StyledAceEditor
@@ -32,8 +39,7 @@ const Editor = ({ saveFile }) => {
       mode="javascript"
       theme="monokai"
       name="editor"
-      // onLoad={this.onLoad}
-      // onChange={this.onChange}
+      onChange={onChangeHandler}
       fontSize={18}
       showPrintMargin={true}
       showGutter={true}
@@ -45,9 +51,7 @@ const Editor = ({ saveFile }) => {
           exec: saveFileHandler, //function to execute when keys are pressed.
         },
       ]}
-      value={`function sum(a, b) {
-  return a + b
-}`}
+      value={value}
       setOptions={{
         enableBasicAutocompletion: true,
         enableLiveAutocompletion: true,

@@ -29,6 +29,15 @@ const StyledButton = styled.button`
     transition: .4s ease;
   }
 
+  ${props => {
+    if(props.loading) {
+      return `
+        background: #ccc;
+        border: 1px solid #ccc;
+      `
+    }
+  }}
+
   &:hover::after {
     opacity: 0;
     transform: scale(1.5);
@@ -36,8 +45,8 @@ const StyledButton = styled.button`
   }
 `
 
-const Button = ({ children, ...props}) => {
-  return <StyledButton {...props} >{children}</StyledButton>
+const Button = ({ children, loading, ...props}) => {
+  return <StyledButton loading={loading} {...props} disabled={loading}>{children}</StyledButton>
 }
 
 export default Button

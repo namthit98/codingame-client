@@ -1,7 +1,10 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useEffect } from 'react'
 import GameScene from './GameScene'
 import MenuScene from './MenuScene'
 import EditorModal from '../../components/EditorModal'
+import GameLevel from './GameLevel'
+import { listQuestions } from '../../api/question.api'
+import { shuffle } from 'lodash'
 
 const GameView = () => {
   const [questions, setQuestions] = useState([
@@ -16,29 +19,72 @@ const GameView = () => {
   const [isWin, setIsWin] = useState(false)
   const [open, setOpen] = useState(false)
   const [isPause, setIsPause] = useState(false)
+  const [currentLevel, setCurrentLevel] = useState(null)
+  const [currentQuestion, setCurrentQuestion] = useState(null)
+
+  const handleChooseLevel = level => {
+    setGameView('game')
+    if (level > 3) {
+      setCellsHorizontal(11)
+      setCellsVertical(8)
+    }
+
+    if (level > 6) {
+      setCellsHorizontal(15)
+      setCellsVertical(12)
+    }
+
+    setCurrentLevel(level)
+  }
 
   const startGameHandler = useCallback(() => {
     //TODO // toggleEditorModalHandler(true)
-    setGameView('game')
+    setGameView('level')
   }, [])
 
   const goToMenuHandler = useCallback(() => {
     setGameView('menu')
   }, [])
 
-  const toggleEditorModalHandler = useCallback((state) => {
+  const toggleEditorModalHandler = useCallback(state => {
     setOpen(state)
+  }, [])
+
+  const fetchQuestions = async () => {
+    const result = await listQuestions({
+      status: 1,
+    })
+
+    if (result && result.success) {
+      setQuestions(result.data.map(el => ({
+        ...el,
+        iid: Math.floor(Math.random() * 10000)
+      })))
+    }
+  }
+
+  useEffect(() => {
+    fetchQuestions()
   }, [])
 
   return (
     <>
+      {gameView === 'level' && <GameLevel onChooseLevel={handleChooseLevel} />}
+
       {gameView === 'menu' && <MenuScene animate={true} startGame={startGameHandler} />}
 
       {gameView === 'game' && (
         <>
-          {open && <EditorModal toggleEditorModalHandler={toggleEditorModalHandler} />}
+          {open && (
+            <EditorModal
+              currentQuestion={questions.find(el => el.iid === currentQuestion)}
+              toggleEditorModalHandler={toggleEditorModalHandler}
+            />
+          )}
           <GameScene
-            questions={questions}
+            currentLevel={currentLevel}
+            handleChooseQuestion={id => setCurrentQuestion(id)}
+            questions={shuffle(questions).slice(0, currentLevel + 3)}
             cellsHorizontal={cellsHorizontal}
             cellsVertical={cellsVertical}
             goToMenu={goToMenuHandler}

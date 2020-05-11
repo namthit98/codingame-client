@@ -14,7 +14,7 @@ let world
 let render
 let isControl
 
-const GameScene = ({ questions, cellsHorizontal, cellsVertical, isWin, setIsWin, open, toggleEditorModalHandler }) => {
+const GameScene = ({  handleChooseQuestion, currentLevel, questions, cellsHorizontal, cellsVertical, isWin, setIsWin, open, toggleEditorModalHandler }) => {
   const sceneRef = useRef()
 
   const width = window.innerWidth
@@ -233,7 +233,7 @@ const GameScene = ({ questions, cellsHorizontal, cellsVertical, isWin, setIsWin,
         y * unitLengthY + unitLengthY / 2,
         ballRadius,
         {
-          id: question.id,
+          id: question.iid,
           label: 'checkpoint',
           render: {
             isStatic: true,
@@ -265,9 +265,11 @@ const GameScene = ({ questions, cellsHorizontal, cellsVertical, isWin, setIsWin,
       labels.includes(collision.bodyB.label) &&
       collision.bodyA.label !== collision.bodyB.label
     ) {
+      // console.log(collision.bodyA);
       const questionId = collision.bodyB.id
       toggleEditorModalHandler(true)
-      alert(questionId)
+
+      handleChooseQuestion(questionId)
 
       World.remove(world, collision.bodyB)
     }

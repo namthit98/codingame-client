@@ -8,6 +8,7 @@ import request from '../lib/request'
 import Tab from './Tab'
 import { get } from 'lodash'
 import AceEditor from 'react-ace'
+import { runCode } from '../api/coding.api'
 
 const StyledWrapper = styled.div`
   position: fixed;
@@ -38,8 +39,8 @@ const StyledModal = styled.div`
   dislay: flex;
   flex-direction: column;
   padding: 0 2rem 2rem 2rem;
-  border-radius: .2rem;
-  background-color: #2F4858;
+  border-radius: 0.2rem;
+  background-color: #2f4858;
 `
 
 const StyledHeader = styled.div`
@@ -50,7 +51,7 @@ const StyledHeader = styled.div`
 `
 
 const StyledTitle = styled.h2`
-  color: #00D4FF;
+  color: #00d4ff;
   font-size: 2.5rem;
 `
 
@@ -68,51 +69,67 @@ const StyledFooter = styled.div`
 `
 
 const StyledBodyLeft = styled.div`
-color: #fff;
+  color: #fff;
   width: 40%;
 `
 
 const StyledBodyRight = styled.div`
-  width: 57%
+  width: 57%;
 `
 
-const EditorModal = ({toggleEditorModalHandler}) => {
-  const [code, setCode] = useState(`function sum(a, b) {
-    return a + b
-}`)
+const EditorModal = ({ toggleEditorModalHandler, currentQuestion }) => {
+  const [code, setCode] = useState('')
   const [results, setResults] = useState('')
+  const [loading, setLoading] = useState(false)
 
   const panels = useMemo(() => {
-    console.log(results);
+    console.log(results)
     return [
       {
         menuItem: 'Instructions',
-        render: () => <div>Tab 1 Content</div>,
+        render: () => (
+          <div
+            dangerouslySetInnerHTML={{ __html: currentQuestion ? currentQuestion.description : '' }}
+          ></div>
+        ),
       },
       {
         menuItem: 'Output',
-        render: () => <div>
-          <span>Time: {get(results, 'stats.duration', 0)} ms</span> &nbsp;
-          <span>Passed: {get(results, 'stats.passes', 0)}</span> &nbsp;
-          <span>Failed: {get(results, 'stats.failures', 0)}</span>
-          <div>
-          {get(results, 'stats.passPercent', 0) === 100 ? (
-                <p>Congratulations! All tests passed!</p>
+        render: () => (
+          <div style={{ fontSize: 18 }}>
+            <span>Time: {get(results, 'stats.duration', 0)} ms</span> &nbsp;
+            <span>Passed: {get(results, 'stats.passes', 0)}</span> &nbsp;
+            <span>Failed: {get(results, 'stats.failures', 0)}</span>
+            <div>
+              {get(results, 'stats.passPercent', 0) === 100 ? (
+                <>
+                  <p>Congratulations! All tests passed!</p>
+                  <br />
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<Button onClick={() => {
+                      closeModalHandler()
+                  }}>Continue</Button>
+                </>
               ) : (
                 <div className="output-editor">
-                  {get(results, 'results.0.suites.0.tests', []).map(test => {
-                      if(test.fail) {
-                          return test.err.message
+                  {get(results, 'results.0.suites.0.tests', [])
+                    .map(test => {
+                      if (test.fail) {
+                        return test.err.message
                       }
                       return null
-                    }).filter(test => test).join('\n')}
+                    })
+                    .filter(test => test)
+                    .join('\n')}
                   <AceEditor
-                    value={get(results, 'results.0.suites.0.tests', []).map(test => {
-                      if(test.fail) {
+                    value={get(results, 'results.0.suites.0.tests', [])
+                      .map(test => {
+                        if (test.fail) {
                           return test.err.message
-                      }
-                      return null
-                    }).filter(test => test).join('\n')}
+                        }
+                        return null
+                      })
+                      .filter(test => test)
+                      .join('\n')}
                     showGutter={false}
                     readOnly={true}
                     maxLines={10}
@@ -120,11 +137,12 @@ const EditorModal = ({toggleEditorModalHandler}) => {
                   />
                 </div>
               )}
+            </div>
           </div>
-        </div>,
+        ),
       },
     ]
-  }, [results])
+  }, [results, currentQuestion])
 
   const closeModalHandler = useCallback(() => {
     openAnimationHandler('reverse', () => {
@@ -132,19 +150,22 @@ const EditorModal = ({toggleEditorModalHandler}) => {
     })
   }, [])
 
-  const changeCodeHandler = useCallback((newValue) => {
+  const changeCodeHandler = useCallback(newValue => {
     setCode(newValue)
   }, [])
 
   const runCodeHandler = useCallback(async () => {
-    const { results } = await request("http://localhost:7000/code/excute", {
-      method: "POST",
-      payload: {
-        code
-      }
+    setLoading(true)
+    const result = await runCode({
+      code,
+      question: currentQuestion._id,
     })
 
-    setResults(results.data)
+    if (result && result.success) {
+      setResults(result.results.data)
+      document.querySelector('#Output').click()
+    }
+    setLoading(false)
   }, [code])
 
   const openAnimationHandler = useCallback((direction, callback) => {
@@ -152,8 +173,8 @@ const EditorModal = ({toggleEditorModalHandler}) => {
       direction,
       easing: 'linear',
       complete: function(anim) {
-        if(callback) callback()
-      }
+        if (callback) callback()
+      },
     })
 
     timeline.add({
@@ -179,21 +200,36 @@ const EditorModal = ({toggleEditorModalHandler}) => {
   }, [])
 
   useEffect(() => {
+    if (currentQuestion) {
+      setCode(currentQuestion.coding)
+      console.log(currentQuestion.coding)
+    }
+  }, [currentQuestion])
+
+  useEffect(() => {
     // return
     openAnimationHandler('normal')
   }, [])
+
+  console.log(currentQuestion)
 
   return (
     <StyledWrapper>
       <StyledBg id="modal-bg" />
       <StyledModal id="editor-modal">
         <StyledHeader>
-          <StyledTitle style={{ marginRight: '1rem' }}>Calculate sum of two number</StyledTitle>
-          <Label color="#fff" bgColor={'#00BE55'}>Solved</Label>
-          <Button bgColor={'#FF5B31'} style={{ marginLeft: 'auto' }} onClick={closeModalHandler}>Skip</Button>
+          <StyledTitle style={{ marginRight: '1rem' }}>
+            {currentQuestion ? currentQuestion.title : ''}
+          </StyledTitle>
+          {/* <Label color="#fff" bgColor={'#00BE55'}>
+            Solved
+          </Label> */}
+          <Button bgColor={'#FF5B31'} style={{ marginLeft: 'auto' }} onClick={closeModalHandler}>
+            Skip
+          </Button>
         </StyledHeader>
         <StyledBody>
-          <StyledBodyLeft style={{overflowY: 'auto'}}>
+          <StyledBodyLeft style={{ overflowY: 'auto' }}>
             <Tab panels={panels} />
           </StyledBodyLeft>
 
@@ -202,7 +238,9 @@ const EditorModal = ({toggleEditorModalHandler}) => {
           </StyledBodyRight>
         </StyledBody>
         <StyledFooter>
-          <Button bgColor={'#00ACFF'} style={{marginLeft: 'auto'}} onClick={runCodeHandler}>Run</Button>
+          <Button loading={loading} bgColor={'#00ACFF'} style={{ marginLeft: 'auto' }} onClick={runCodeHandler}>
+            Run
+          </Button>
         </StyledFooter>
       </StyledModal>
     </StyledWrapper>

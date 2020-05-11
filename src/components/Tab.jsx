@@ -33,7 +33,7 @@ const Tab = ({ panels }) => {
     <TabWrapper>
       <StyledHeading>
         {panels.map((panel, index) => (
-          <StyledHeadingItem key={index} className={indexPanel === index ? "active" : ""} onClick={() => handleChangePanel(index)}>{panel.menuItem}</StyledHeadingItem>
+          <StyledHeadingItem id={panel.menuItem} key={index} className={indexPanel === index ? "active" : ""} onClick={() => handleChangePanel(index)}>{panel.menuItem}</StyledHeadingItem>
         ))}
       </StyledHeading>
       <div className="content">

@@ -1,5 +1,6 @@
 import React from 'react'
 import styled from 'styled-components'
+import FormLogin from '../views/GameView/FormLogin'
 
 const StyledMenu = styled.div`
   width: 35%;
@@ -33,7 +34,7 @@ const StyledMenu = styled.div`
     outline: none;
     background: none;
     color: #fff;
-    opacity: ${props => props.animate ? 0 : 1};
+    opacity: ${props => (props.animate ? 0 : 1)};
   }
 
   button::before,
@@ -88,16 +89,17 @@ const StyledMenu = styled.div`
 
 const Menu = ({ id, animate, startGame }) => {
   return (
+    // <FormLogin />
     <StyledMenu id={id || 'menu'} animate={animate}>
       <button onClick={() => startGame()}>
         <span>Start Game </span>
       </button>
-      <button>
+      {/* <button>
         <span>Ranking</span>
       </button>
       <button>
         <span>Setting</span>
-      </button>
+      </button> */}
     </StyledMenu>
   )
 }

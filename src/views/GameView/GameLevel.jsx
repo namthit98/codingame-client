@@ -2,10 +2,11 @@ import React from 'react'
 import styled from 'styled-components'
 import menuBackgroundMp3 from './../../assets/mp3/ChocoboRacingCidsTestCourse-HoaTau-3316605.mp3'
 import Audio from '../../components/Audio'
+import Button from '../../components/Button'
 
 const StyledGameLevelContainer = styled.div`
   width: 100vw;
-  height: 100vh;
+  min-height: 100vh;
   background: black;
   display: flex;
   align-items: center;
@@ -48,16 +49,33 @@ const StyledLevel = styled.div`
   }
 `
 
-const GameLevel = ({ onChooseLevel }) => {
+const GameLevel = ({ onChooseLevel, setGameView }) => {
   return (
     <StyledGameLevelContainer>
       <Audio src={menuBackgroundMp3} />
       <StyledTitle>Level</StyledTitle>
       <StyledLevelContainer>
         {[1, 2, 3, 4, 5, 6, 7, 8].map(el => {
-          return <StyledLevel key={el} onClick={() => onChooseLevel(el)}>{el}</StyledLevel>
+          return (
+            <StyledLevel key={el} onClick={() => onChooseLevel(el)}>
+              {el}
+            </StyledLevel>
+          )
         })}
       </StyledLevelContainer>
+      <Button
+        onClick={() => {
+          // setGameView('level')
+          setGameView('menu')
+        }}
+        style={{
+          position: 'fixed',
+          top: 10,
+          right: 10,
+        }}
+      >
+        Exit
+      </Button>
     </StyledGameLevelContainer>
   )
 }

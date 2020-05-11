@@ -5,6 +5,7 @@ import EditorModal from '../../components/EditorModal'
 import GameLevel from './GameLevel'
 import { listQuestions } from '../../api/question.api'
 import { shuffle } from 'lodash'
+import Button from '../../components/Button'
 
 const GameView = () => {
   const [questions, setQuestions] = useState([
@@ -56,10 +57,12 @@ const GameView = () => {
     })
 
     if (result && result.success) {
-      setQuestions(result.data.map(el => ({
-        ...el,
-        iid: Math.floor(Math.random() * 10000)
-      })))
+      setQuestions(
+        result.data.map(el => ({
+          ...el,
+          iid: Math.floor(Math.random() * 10000),
+        })),
+      )
     }
   }
 
@@ -69,7 +72,7 @@ const GameView = () => {
 
   return (
     <>
-      {gameView === 'level' && <GameLevel onChooseLevel={handleChooseLevel} />}
+      {gameView === 'level' && <GameLevel setGameView={setGameView} onChooseLevel={handleChooseLevel} />}
 
       {gameView === 'menu' && <MenuScene animate={true} startGame={startGameHandler} />}
 
@@ -81,6 +84,56 @@ const GameView = () => {
               toggleEditorModalHandler={toggleEditorModalHandler}
             />
           )}
+          {isWin && (
+            <div
+              style={{
+                position: 'fixed',
+                width: 500,
+                height: 300,
+                borderRadius: '10px',
+                border: '1px solid #7ccb34',
+                color: '#fff',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                flexDirection: 'column',
+                background: '#2a3a0b',
+              }}
+            >
+              <h2
+                style={{
+                  fontSize: '50px',
+                  marginBottom: '30px',
+                }}
+              >
+                You Win !!!!!!!!
+              </h2>
+              <Button
+                onClick={() => {
+                  setGameView('level')
+                  setIsWin(false)
+                }}
+              >
+                Next Level
+              </Button>
+            </div>
+          )}
+          <Button
+            onClick={() => {
+              setGameView('level')
+              setIsWin(false)
+            }}
+            style={{
+              position: 'fixed',
+              top: 10,
+              right: 10
+            }}
+          >
+            Exit
+          </Button>
           <GameScene
             currentLevel={currentLevel}
             handleChooseQuestion={id => setCurrentQuestion(id)}

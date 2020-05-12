@@ -201,8 +201,8 @@ const EditorModal = ({ toggleEditorModalHandler, currentQuestion }) => {
 
   useEffect(() => {
     if (currentQuestion) {
-      setCode(currentQuestion.coding)
-      console.log(currentQuestion.coding)
+      // setCode(currentQuestion.coding)
+      // console.log(currentQuestion.coding)
     }
   }, [currentQuestion])
 

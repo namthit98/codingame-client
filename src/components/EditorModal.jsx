@@ -9,6 +9,7 @@ import Tab from './Tab'
 import { get } from 'lodash'
 import AceEditor from 'react-ace'
 import { runCode } from '../api/coding.api'
+import { toast } from 'react-toastify'
 
 const StyledWrapper = styled.div`
   position: fixed;
@@ -105,9 +106,14 @@ const EditorModal = ({ toggleEditorModalHandler, currentQuestion }) => {
                 <>
                   <p>Congratulations! All tests passed!</p>
                   <br />
-                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<Button onClick={() => {
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                  <Button
+                    onClick={() => {
                       closeModalHandler()
-                  }}>Continue</Button>
+                    }}
+                  >
+                    Continue
+                  </Button>
                 </>
               ) : (
                 <div className="output-editor">
@@ -155,16 +161,26 @@ const EditorModal = ({ toggleEditorModalHandler, currentQuestion }) => {
   }, [])
 
   const runCodeHandler = useCallback(async () => {
+    setResults(null)
     setLoading(true)
-    const result = await runCode({
-      code,
-      question: currentQuestion._id,
-    })
+    try {
+      const result = await runCode({
+        code,
+        question: currentQuestion._id,
+      })
 
-    if (result && result.success) {
-      setResults(result.results.data)
-      document.querySelector('#Output').click()
+      if (result && result.success) {
+        setResults(result.results.data)
+        document.querySelector('#Output').click()
+      }
+    } catch (err) {
+      console.log(err.response)
+      setResults()
+      const message = err.response.data.message
+     
+      toast.error(message)
     }
+
     setLoading(false)
   }, [code])
 
@@ -238,7 +254,12 @@ const EditorModal = ({ toggleEditorModalHandler, currentQuestion }) => {
           </StyledBodyRight>
         </StyledBody>
         <StyledFooter>
-          <Button loading={loading} bgColor={'#00ACFF'} style={{ marginLeft: 'auto' }} onClick={runCodeHandler}>
+          <Button
+            loading={loading}
+            bgColor={'#00ACFF'}
+            style={{ marginLeft: 'auto' }}
+            onClick={runCodeHandler}
+          >
             Run
           </Button>
         </StyledFooter>

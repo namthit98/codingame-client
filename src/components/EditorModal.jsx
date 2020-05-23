@@ -175,7 +175,6 @@ const EditorModal = ({ toggleEditorModalHandler, currentQuestion }) => {
       }
     } catch (err) {
       console.log(err.response)
-      setResults()
       const message = err.response.data.message
      
       toast.error(message)

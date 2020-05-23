@@ -25,14 +25,15 @@ const GameView = () => {
 
   const handleChooseLevel = level => {
     setGameView('game')
-    if (level > 3) {
-      setCellsHorizontal(11)
-      setCellsVertical(8)
-    }
-
     if (level > 6) {
       setCellsHorizontal(15)
       setCellsVertical(12)
+    } else if (level > 3) {
+      setCellsHorizontal(11)
+      setCellsVertical(8)
+    } else {
+      setCellsHorizontal(8)
+      setCellsVertical(4)
     }
 
     setCurrentLevel(level)
@@ -41,10 +42,12 @@ const GameView = () => {
   const startGameHandler = useCallback(() => {
     //TODO // toggleEditorModalHandler(true)
     setGameView('level')
+    setCurrentLevel(null)
   }, [])
 
   const goToMenuHandler = useCallback(() => {
     setGameView('menu')
+    setCurrentLevel(null)
   }, [])
 
   const toggleEditorModalHandler = useCallback(state => {
@@ -137,7 +140,7 @@ const GameView = () => {
           <GameScene
             currentLevel={currentLevel}
             handleChooseQuestion={id => setCurrentQuestion(id)}
-            questions={shuffle(questions).slice(0, currentLevel + 3)}
+            questions={shuffle(questions).slice(0, currentLevel + (1 * currentLevel))}
             cellsHorizontal={cellsHorizontal}
             cellsVertical={cellsVertical}
             goToMenu={goToMenuHandler}

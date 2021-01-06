@@ -45,7 +45,7 @@
   "dependencies": {
     "ace-builds": "^1.4.7",
     "animejs": "^3.1.0",
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "formik": "^2.0.6",
     "immer": "^5.0.0",
     "lodash": "^4.17.15",

@@ -47,7 +47,7 @@
     "animejs": "^3.1.0",
     "axios": "^0.19.2",
     "formik": "^2.0.6",
-    "immer": "^5.0.0",
+    "immer": "^9.0.6",
     "lodash": "^4.17.15",
     "matter-js": "^0.14.2",
     "query-string": "^6.9.0",
